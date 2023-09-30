@@ -1,0 +1,6 @@
+
+# Ignore all the log files
+.log
+
+# Ignore the Guide.py file
+Guide.py
