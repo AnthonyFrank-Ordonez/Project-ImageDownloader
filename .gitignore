@@ -4,3 +4,9 @@
 
 # Ignore the Guide.py file
 Guide.py
+
+# Ignore all files in any directory named temp
+temp/
+
+# ignore the .idea folders
+.idea/
