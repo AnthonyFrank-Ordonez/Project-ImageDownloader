@@ -1,115 +1,82 @@
-import time
-import requests
-import os
+import customtkinter as ctk
+from CTkMessagebox import CTkMessagebox
 from fake_useragent import UserAgent
-from http import HTTPStatus
+from img_validation_and_processing import ImageValidationAndProcessing
+import logging
 
 
-def get_extensions(url: str) -> str | None:
-    """get and verify the extensions in the link"""
-    extensions: list[str] = ['.png', '.jpg', '.jpeg', '.svg', '.gif']
+class ImageDownloader(ImageValidationAndProcessing):
+    def __init__(self, header: dict, invalid_type: tuple, log):
+        super().__init__(header, invalid_type, log)
+        self.window = ctk.CTk()
+        self.window.geometry('420x280')
+        self.window.title('Image Downloader')
+        self.window.resizable(False, False)
 
-    for extension in extensions:
-        if extension in url:
-            return extension
+        # Set up all the labels, Entry, and Buttons
+        self.url_label = ctk.CTkLabel(self.window, text='URL: ', font=('Calibri Bold', 15))
+        self.url_entry = ctk.CTkEntry(self.window, placeholder_text='URL', width=250)
 
+        self.fileName_label = ctk.CTkLabel(self.window, text='FIle Name: ', font=('Calibri Bold', 15))
+        self.fileName_entry = ctk.CTkEntry(self.window, placeholder_text='File Name', width=250)
 
-def verify_link(url: str) -> str | None:
-    """Validate link or URL if it has https"""
+        self.folderPath_label = ctk.CTkLabel(self.window, text='Folder Path: ', font=('Calibri Bold', 15))
+        self.folderPath_entry = ctk.CTkEntry(self.window, placeholder_text='Folder Path', width=250)
 
-    link: list[str] = url.split(":")
+        self.download_btn = ctk.CTkButton(self.window, text='DOWNLOAD', width=250, height=40, command=self.check_inputs)
+        self.clear_btn = ctk.CTkButton(self.window, text='CLEAR', width=250, height=40)
 
-    try:
-        if 'https' in link or 'http' in link:
-            return url
+        # Set up the grid
+        self.url_label.grid(row=0, column=0, padx=25, pady=20, sticky='se')
+        self.url_entry.grid(row=0, column=1)
+        self.fileName_label.grid(row=1, column=0, padx=25, sticky='se')
+        self.fileName_entry.grid(row=1, column=1)
+        self.folderPath_label.grid(row=2, column=0, padx=25, pady=20)
+        self.folderPath_entry.grid(row=2, column=1)
+        self.download_btn.grid(row=3, column=1)
+        self.clear_btn.grid(row=4, column=1, pady=15)
 
-        else:
-            raise Exception("Could not download the image please double check you URL...")
+    def check_inputs(self):
+        """Check if there are any missing inputs from the entry"""
 
-    except Exception as e:
-        print()
-        print(e)
+        # input values obtain from the user input from the entries
+        input_URL: str = self.url_entry.get()
+        input_Name: str = self.fileName_entry.get()
+        input_Path: str = self.folderPath_entry.get()
 
-
-def create_folder(folder: str) -> None:
-    """Create the folder if it does not exist"""
-    if not os.path.exists(folder):
-        os.makedirs(folder)
-
-    else:
-        pass
-
-
-def download_image(url: str, name: str, header: dict, folder_path: str) -> None:
-    """"Download the Image based on the user url and file name"""
-
-    # Create Folder if it does not exist
-    create_folder(folder_path)
-
-    if extension := get_extensions(url):
-
-        file_name: str = f'{name}{extension}'
-        path: str = os.path.join(folder_path, file_name)
-
-        if os.path.isfile(path):
-            raise Exception('File Name already Exists..')
-
-        # Get response from the given URL
-        link: str = verify_link(url)
-        response = requests.get(link, headers=header)
-        status: int = response.status_code
-
-        # Check if the status of URL is active or not
-        if HTTPStatus(status).name == "OK":
-            print("Downloading... Please wait")
-
-            with open(path, "wb") as download_img:
-                download_img.write(response.content)
-                download_img.flush()
-                os.fsync(download_img.fileno())
-
-            print()
-            print(f"Image ({file_name}) has been downloaded successfully [path: {path}]")
-            print("Exiting the System Please wait...")
-            time.sleep(2)
+        # Check if there are any missing inputs from entries
+        if not input_URL or not input_Name or not input_Path:
+            CTkMessagebox(message="Invalid, Please double check your input and try again.", title='Input Error',
+                          icon='cancel')
+            self.logger.debug('Input Error: There are missing input from the entries')
 
         else:
-            print('-' * 75)
-            raise Exception("Download Failed (Status Code: {} {})".format(status, HTTPStatus(status).phrase))
+            self.download_img(url=input_URL, name=input_Name, folder_path=input_Path)
 
-    else:
-        raise Exception('Image Extension could not be located in the given link')
+    def run_app(self):
+        """Run the application"""
+        self.window.mainloop()
 
 
 def main():
-    """Initializer"""
-    header: dict = {"user_agent": str(UserAgent.firefox)}
-    path: str = "images"
+    logging.basicConfig(filename='D:\\Programming\\Local Development Environment\\tmp.log', level=logging.DEBUG,
+                        encoding='utf-8',
+                        format='%(asctime)s: %(name)s: %(levelname)s: %(message)s',
+                        datefmt='%Y-%m-%d: %I:%M %p')
+    header: dict = {'user_agent': str(UserAgent.firefox)}
+    invalid_type: tuple = ("", " ")
+    logger = logging.getLogger(__name__)
 
-    try:
-        input_url: str = input("Input your Url >> ")
-        input_name: str = input("What would you like to name your file? >> ")
+    # Disable 3rd party module loggers
+    logging.getLogger('requests').setLevel(logging.INFO)
+    logging.getLogger('PIL').setLevel(logging.INFO)
+    logging.getLogger('urllib3').setLevel(logging.INFO)
 
-        if input_url in invalid_type:
-
-            if input_name in invalid_type:
-                raise Exception('Invalid URL and Name Please Try Again...')
-
-            raise Exception('Invalid URL Please Try Again...')
-
-        elif input_name in invalid_type:
-            raise Exception('Invalid Name Please Try Again!...')
-
-        else:
-            download_image(input_url, name=input_name, header=header, folder_path=path)
-
-    except Exception as e:
-        print(e)
-        print("-" * 75)
-        time.sleep(1)
-        main()
+    # Create the Object and start the app
+    Image_Downloader = ImageDownloader(header, invalid_type, logger)
+    Image_Downloader.run_app()
 
 
 if __name__ == '__main__':
-    invalid_type = ("", " ")
+
     main()
