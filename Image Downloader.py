@@ -59,7 +59,7 @@ class ImageDownloader(ImageValidationAndProcessing):
 
 
 def main():
-    logging.basicConfig(filename='D:\\Programming\\Local Development Environment\\tmp.log', level=logging.DEBUG,
+    logging.basicConfig(filename='Your Path', level=logging.DEBUG,
                         encoding='utf-8',
                         format='%(asctime)s: %(name)s: %(levelname)s: %(message)s',
                         datefmt='%Y-%m-%d: %I:%M %p')
@@ -78,5 +78,4 @@ def main():
 
 
 if __name__ == '__main__':
-
     main()
