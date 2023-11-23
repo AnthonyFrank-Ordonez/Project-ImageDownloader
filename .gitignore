@@ -10,3 +10,9 @@ temp/
 
 # ignore the .idea folders
 .idea/
+
+# ignore the __pycache__ folder
+__pycache__/
+
+# ignore the OLD folder
+OLD/
