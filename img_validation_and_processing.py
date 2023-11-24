@@ -12,7 +12,7 @@ class ImageValidationAndProcessing:
         self.extensions = ['.png', '.jpeg', '.svg', '.gif', '.jpg']
         self.logger = log
 
-    def download_img(self, *, url, name, folder_path):
+    def download_img(self, *, url: str, name: str, folder_path: str):
         """
         Download the image in the specified folder path and file name
         :param url: The link/URL of the image that user wants to download
@@ -36,10 +36,10 @@ class ImageValidationAndProcessing:
                 CTkMessagebox(message="File name, Already Exist!", title='Invalid file name',
                               icon='warning')
                 self.logger.debug('Your input File Name already exist in the path')
-                return
+                return   # stop the code in continuing
 
             # Get response from the given URL
-            link: str = self.verify_link(url)
+            link: str | None = self.verify_link(url)
             response = requests.get(link, headers=self.header)
             status: int = response.status_code
 
@@ -81,7 +81,7 @@ class ImageValidationAndProcessing:
             CTkMessagebox(message="Invalid, Please double check your URL", title='URL Error',
                           icon='cancel')
             self.logger.debug('Unable to connect to the given URL, PLease double check your url')
-            return
+            return   # stop the code in continuing
 
     def get_extension(self, url: str):
         """
